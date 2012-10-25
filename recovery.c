@@ -805,7 +805,9 @@ main(int argc, char **argv) {
 
     int is_user_initiated_recovery = 0;
     time_t start = time(NULL);
-
+#ifdef RECOVERY_CHARGEMODE
+    __system("charge");
+#endif
     // If these fail, there's not really anywhere to complain...
     freopen(TEMPORARY_LOG_FILE, "a", stdout); setbuf(stdout, NULL);
     freopen(TEMPORARY_LOG_FILE, "a", stderr); setbuf(stderr, NULL);
@@ -813,7 +815,7 @@ main(int argc, char **argv) {
 
     device_ui_init(&ui_parameters);
     ui_init();
-    ui_print(EXPAND(RECOVERY_VERSION)"\n");
+    ui_print("Support:www.shendu.com\nBy Ivan\n");
     load_volume_table();
     process_volumes();
     LOGI("Processing arguments.\n");

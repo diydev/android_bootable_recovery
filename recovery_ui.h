@@ -102,4 +102,7 @@ set_sdcard_update_bootloader_message();
 
 extern int ui_handle_key(int key, int visible);
 
+// Vibration toggle
+extern int vibration_enabled;
+
 #endif
