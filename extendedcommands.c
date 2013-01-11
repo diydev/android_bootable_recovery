@@ -1546,3 +1546,22 @@ int verify_root_and_recovery() {
     ensure_path_unmounted("/system");
     return ret;
 }
+
+#ifdef RECOVERY_CHARGEMODE
+void handle_chargemode() {
+    const char* filename = "/proc/cmdline";
+    struct stat file_info;
+    if (0 != stat(filename, &file_info))
+        return;
+    int file_len = file_info.st_size;
+    char* file_data = (char*)malloc(file_len + 1);
+    FILE *file = fopen(filename, "rb");
+    if (file == NULL)
+        return;
+    fread(file_data, file_len, 1, file);
+    file_data[file_len] = '\0';
+    fclose(file);
+    if (strstr(file_data, "androidboot.mode=charge") != NULL)
+        reboot(RB_POWER_OFF);
+ }
+#endif
