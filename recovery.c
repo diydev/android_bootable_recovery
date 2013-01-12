@@ -838,8 +838,8 @@ main(int argc, char **argv) {
     flag = get_chargemode();
 
     if(flag == 1){
-        __system("mount /dev/block/mmcblk0p12 /system");
-        __system("sleep 1");
+//        __system("mount /dev/block/mmcblk0p12 /system");
+//        __system("sleep 1");
         __system("charge");
     }else {
 #endif
