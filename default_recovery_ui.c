@@ -22,14 +22,14 @@
 
 char* MENU_HEADERS[] = { NULL };
 
-char* MENU_ITEMS[] = { "reboot system now",
-                       "install zip from sdcard",
-                       "install zip from sideload",
-                       "wipe data/factory reset",
-                       "wipe cache partition",
-                       "backup and restore",
-                       "mounts and storage",
-                       "advanced",
+char* MENU_ITEMS[] = { "立即重启系统",
+                       "选择刷机包刷机",
+                       "从电脑选择刷机包",
+                       "恢复出厂设置",
+                       "清空缓存数据",
+                       "备份还原",
+                       "U盘/格式化",
+                       "高级功能",
                        NULL };
 
 void device_ui_init(UIParameters* ui_parameters) {

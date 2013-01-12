@@ -335,7 +335,7 @@ static int
 erase_volume(const char *volume) {
     ui_set_background(BACKGROUND_ICON_INSTALLING);
     ui_show_indeterminate_progress();
-    ui_print("Formatting %s...\n", volume);
+    ui_print("格式化 %s...\n", volume);
 
     if (strcmp(volume, "/cache") == 0) {
         // Any part of the log we'd copied to cache is now gone.
@@ -536,7 +536,7 @@ static int
 update_directory(const char* path, const char* unmount_when_done) {
     ensure_path_mounted(path);
 
-    const char* MENU_HEADERS[] = { "Choose a package to install:",
+    const char* MENU_HEADERS[] = { "选择一个zip文件进行安装:",
                                    path,
                                    "",
                                    NULL };
@@ -665,33 +665,24 @@ wipe_data(int confirm) {
         static char** title_headers = NULL;
 
         if (title_headers == NULL) {
-            char* headers[] = { "Confirm wipe of all user data?",
-                                "  THIS CAN NOT BE UNDONE.",
+            char* headers[] = { "确认清空所有数据?",
+                                "  此操作将不可恢复.",
                                 "",
                                 NULL };
             title_headers = prepend_title((const char**)headers);
         }
 
-        char* items[] = { " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " No",
-                          " Yes -- delete all user data",   // [7]
-                          " No",
-                          " No",
-                          " No",
+        char* items[] = { " 是的 - 清空所有数据",   // [1]
+                          " 取消 - 返回",
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 7) {
+        if (chosen_item != 0) {
             return;
         }
     }
 
-    ui_print("\n-- Wiping data...\n");
+    ui_print("\n-- 清空 data...\n");
     device_wipe_data();
     erase_volume("/data");
     erase_volume("/cache");
@@ -700,7 +691,7 @@ wipe_data(int confirm) {
     }
     erase_volume("/sd-ext");
     erase_volume("/sdcard/.android_secure");
-    ui_print("Data wipe complete.\n");
+    ui_print("所有数据清空完毕.\n");
 }
 
 int ui_menu_level = 1;
@@ -739,11 +730,11 @@ prompt_and_wait() {
                 break;
 
             case ITEM_WIPE_CACHE:
-                if (confirm_selection("Confirm wipe?", "Yes - Wipe Cache"))
+                if (confirm_selection("确认清空?", "是的 - 清空缓存"))
                 {
-                    ui_print("\n-- Wiping cache...\n");
+                    ui_print("\n-- 清空缓存...\n");
                     erase_volume("/cache");
-                    ui_print("Cache wipe complete.\n");
+                    ui_print("缓存清空完毕.\n");
                     if (!ui_text_visible()) return;
                 }
                 break;
@@ -854,7 +845,7 @@ main(int argc, char **argv) {
 #endif
     device_ui_init(&ui_parameters);
     ui_init();
-    ui_print("Support:www.shendu.com\nBy Ivan\n");
+    ui_print("请支持:深度网\nWWW.SHENDU.COM\n");
     load_volume_table();
     process_volumes();
     LOGI("Processing arguments.\n");
@@ -971,11 +962,11 @@ main(int argc, char **argv) {
 
     sync();
     if(!poweroff) {
-        ui_print("Rebooting...\n");
+        ui_print("重启手机...\n");
         android_reboot(ANDROID_RB_RESTART, 0, 0);
     }
     else {
-        ui_print("Shutting down...\n");
+        ui_print("关闭手机...\n");
         android_reboot(ANDROID_RB_POWEROFF, 0, 0);
     }
     return EXIT_SUCCESS;

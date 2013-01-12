@@ -88,12 +88,12 @@ void
 toggle_signature_check()
 {
     signature_check_enabled = !signature_check_enabled;
-    ui_print("Signature Check: %s\n", signature_check_enabled ? "Enabled" : "Disabled");
+    ui_print("签名验证: %s\n", signature_check_enabled ? "开启" : "关闭");
 }
 
 int install_zip(const char* packagefilepath)
 {
-    ui_print("\n-- Installing: %s\n", packagefilepath);
+    ui_print("\n-- 正在安装: %s\n", packagefilepath);
     if (device_flash_type() == MTD) {
         set_sdcard_update_bootloader_message();
     }
@@ -101,11 +101,11 @@ int install_zip(const char* packagefilepath)
     ui_reset_progress();
     if (status != INSTALL_SUCCESS) {
         ui_set_background(BACKGROUND_ICON_ERROR);
-        ui_print("Installation aborted.\n");
+        ui_print("安装失败.\n");
         return 1;
     }
     ui_set_background(BACKGROUND_ICON_NONE);
-    ui_print("\nInstall from sdcard complete.\n");
+    ui_print("\n安装完成.\n");
     return 0;
 }
 
@@ -116,25 +116,25 @@ int install_zip(const char* packagefilepath)
 
 void show_install_update_menu()
 {
-    static char* headers[] = {  "Apply update from .zip file on SD card",
+    static char* headers[] = {  "确认安装SD上的zip文件",
                                 "",
                                 NULL
     };
     
-    char* install_menu_items[] = {  "choose zip from sdcard",
-                                    "apply /sdcard/update.zip",
-                                    "toggle signature verification",
+    char* install_menu_items[] = {  "从sdcard选择zip文件",
+                                    "安装/sdcard/update.zip",
+                                    "切换签名验证",
                                     NULL,
                                     NULL };
 
     char *other_sd = NULL;
     if (volume_for_path("/emmc") != NULL) {
         other_sd = "/emmc/";
-        install_menu_items[3] = "choose zip from internal sdcard";
+        install_menu_items[3] = "从内置卡选择zip文件";
     }
     else if (volume_for_path("/external_sd") != NULL) {
         other_sd = "/external_sd/";
-        install_menu_items[3] = "choose zip from external sdcard";
+        install_menu_items[3] = "从外置卡选择zip文件";
     }
     
     for (;;)
@@ -147,7 +147,7 @@ void show_install_update_menu()
                 break;
             case ITEM_APPLY_SDCARD:
             {
-                if (confirm_selection("Confirm install?", "Yes - Install /sdcard/update.zip"))
+                if (confirm_selection("确认安装?", "是的 - 安装 /sdcard/update.zip"))
                     install_zip(SDCARD_UPDATE_FILE);
                 break;
             }
@@ -193,7 +193,7 @@ char** gather_files(const char* directory, const char* fileExtensionOrDirectory,
 
     dir = opendir(directory);
     if (dir == NULL) {
-        ui_print("Couldn't open directory.\n");
+        ui_print("无法打开目录.\n");
         return NULL;
     }
 
@@ -313,7 +313,7 @@ char* choose_file_menu(const char* directory, const char* fileExtensionOrDirecto
     int total = numDirs + numFiles;
     if (total == 0)
     {
-        ui_print("No files found.\n");
+        ui_print("无法找到所选文件.\n");
     }
     else
     {
@@ -368,7 +368,7 @@ void show_choose_zip_menu(const char *mount_point)
         return;
     }
 
-    static char* headers[] = {  "Choose a zip to apply",
+    static char* headers[] = {  "选择一个zip文件安装",
                                 "",
                                 NULL
     };
@@ -376,9 +376,9 @@ void show_choose_zip_menu(const char *mount_point)
     char* file = choose_file_menu(mount_point, ".zip", headers);
     if (file == NULL)
         return;
-    static char* confirm_install  = "Confirm install?";
+    static char* confirm_install  = "确认安装?";
     static char confirm[PATH_MAX];
-    sprintf(confirm, "Yes - Install %s", basename(file));
+    sprintf(confirm, "是的 - 安装 %s", basename(file));
     if (confirm_selection(confirm_install, confirm))
         install_zip(file);
 }
@@ -390,7 +390,7 @@ void show_nandroid_restore_menu(const char* path)
         return;
     }
 
-    static char* headers[] = {  "Choose an image to restore",
+    static char* headers[] = {  "选择一个备份进行还原",
                                 "",
                                 NULL
     };
@@ -401,7 +401,7 @@ void show_nandroid_restore_menu(const char* path)
     if (file == NULL)
         return;
 
-    if (confirm_selection("Confirm restore?", "Yes - Restore"))
+    if (confirm_selection("确认还原?", "是的 - 还原"))
         nandroid_restore(file, 1, 1, 1, 1, 1, 0);
 }
 
@@ -412,7 +412,7 @@ void show_nandroid_delete_menu(const char* path)
         return;
     }
 
-    static char* headers[] = {  "Choose an image to delete",
+    static char* headers[] = {  "选择一个备份进行删除",
                                 "",
                                 NULL
     };
@@ -423,7 +423,7 @@ void show_nandroid_delete_menu(const char* path)
     if (file == NULL)
         return;
 
-    if (confirm_selection("Confirm delete?", "Yes - Delete")) {
+    if (confirm_selection("确认删除?", "确认 - 删除")) {
         // nandroid_restore(file, 1, 1, 1, 1, 1, 0);
         sprintf(tmp, "rm -rf %s", file);
         __system(tmp);
@@ -568,14 +568,14 @@ void show_mount_usb_storage_menu()
     if (control_usb_storage(volumes, 1))
         return;
 
-    static char* headers[] = {  "USB Mass Storage device",
-                                "Leaving this menu unmount",
-                                "your SD card from your PC.",
+    static char* headers[] = {  "你已进入U盘模式",
+                                "",
+                                "将手机连接到电脑即可.",
                                 "",
                                 NULL
     };
 
-    static char* list[] = { "Unmount", NULL };
+    static char* list[] = { "退出U盘模式", NULL };
 
     for (;;)
     {
@@ -594,29 +594,20 @@ int confirm_selection(const char* title, const char* confirm)
     if (0 == stat("/sdcard/clockworkmod/.no_confirm", &info))
         return 1;
 
-    char* confirm_headers[]  = {  title, "  THIS CAN NOT BE UNDONE.", "", NULL };
+    char* confirm_headers[]  = {  title, "  注意:操作后将无法恢复.", "", NULL };
     if (0 == stat("/sdcard/clockworkmod/.one_confirm", &info)) {
-        char* items[] = { "No",
+        char* items[] = { "取消 - 返回",
                         confirm, //" Yes -- wipe partition",   // [1]
                         NULL };
         int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
         return chosen_item == 1;
     }
     else {
-        char* items[] = { "No",
-                        "No",
-                        "No",
-                        "No",
-                        "No",
-                        "No",
-                        "No",
+        char* items[] = { "取消 - 返回",
                         confirm, //" Yes -- wipe partition",   // [7]
-                        "No",
-                        "No",
-                        "No",
                         NULL };
         int chosen_item = get_menu_selection(confirm_headers, items, 0, 0);
-        return chosen_item == 7;
+        return chosen_item == 1;
     }
     }
 
@@ -722,7 +713,7 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
         Volume *vol = volume_for_path("/sd-ext");
         if (vol == NULL || 0 != stat(vol->device, &st))
         {
-            ui_print("No app2sd partition found. Skipping format of /sd-ext.\n");
+            ui_print("没有发现app2sd. 取消格式化 /sd-ext.\n");
             return 0;
         }
     }
@@ -749,8 +740,8 @@ int format_unknown_device(const char *device, const char* path, const char *fs_t
 
     if (0 != ensure_path_mounted(path))
     {
-        ui_print("Error mounting %s!\n", path);
-        ui_print("Skipping format...\n");
+        ui_print("挂载出错 %s!\n", path);
+        ui_print("放弃格式化...\n");
         return 0;
     }
 
@@ -804,7 +795,7 @@ int is_safe_to_format(char* name)
 
 void show_partition_menu()
 {
-    static char* headers[] = {  "Mounts and Storage Menu",
+    static char* headers[] = {  "挂载及分区菜单",
                                 "",
                                 NULL
     };
@@ -835,26 +826,26 @@ void show_partition_menu()
     for (i = 0; i < num_volumes; ++i) {
         Volume* v = &device_volumes[i];
         if(strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0) {
-            sprintf(&mount_menu[mountable_volumes].mount, "mount %s", v->mount_point);
-            sprintf(&mount_menu[mountable_volumes].unmount, "unmount %s", v->mount_point);
+            sprintf(&mount_menu[mountable_volumes].mount, "挂载 %s", v->mount_point);
+            sprintf(&mount_menu[mountable_volumes].unmount, "卸载 %s", v->mount_point);
             mount_menu[mountable_volumes].v = &device_volumes[i];
             ++mountable_volumes;
             if (is_safe_to_format(v->mount_point)) {
-                sprintf(&format_menu[formatable_volumes].txt, "format %s", v->mount_point);
+                sprintf(&format_menu[formatable_volumes].txt, "格式化 %s", v->mount_point);
                 format_menu[formatable_volumes].v = &device_volumes[i];
                 ++formatable_volumes;
             }
         }
         else if (strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) == 0 && is_safe_to_format(v->mount_point))
         {
-            sprintf(&format_menu[formatable_volumes].txt, "format %s", v->mount_point);
+            sprintf(&format_menu[formatable_volumes].txt, "格式化 %s", v->mount_point);
             format_menu[formatable_volumes].v = &device_volumes[i];
             ++formatable_volumes;
         }
     }
 
-    static char* confirm_format  = "Confirm format?";
-    static char* confirm = "Yes - Format";
+    static char* confirm_format  = "确认格式化?";
+    static char* confirm = "是的 - 格式化";
     char confirm_string[255];
 
     for (;;)
@@ -877,7 +868,7 @@ void show_partition_menu()
         }
 
         if (!is_data_media()) {
-          options[mountable_volumes + formatable_volumes] = "mount USB storage";
+          options[mountable_volumes + formatable_volumes] = "进入U盘模式";
           options[mountable_volumes + formatable_volumes + 1] = NULL;
         }
         else {
@@ -897,12 +888,12 @@ void show_partition_menu()
             if (is_path_mounted(v->mount_point))
             {
                 if (0 != ensure_path_unmounted(v->mount_point))
-                    ui_print("Error unmounting %s!\n", v->mount_point);
+                    ui_print("卸载出错 %s!\n", v->mount_point);
             }
             else
             {
                 if (0 != ensure_path_mounted(v->mount_point))
-                    ui_print("Error mounting %s!\n",  v->mount_point);
+                    ui_print("挂载出错 %s!\n",  v->mount_point);
             }
         }
         else if (chosen_item < (mountable_volumes + formatable_volumes))
@@ -915,11 +906,11 @@ void show_partition_menu()
 
             if (!confirm_selection(confirm_string, confirm))
                 continue;
-            ui_print("Formatting %s...\n", v->mount_point);
+            ui_print("格式化 %s...\n", v->mount_point);
             if (0 != format_volume(v->mount_point))
-                ui_print("Error formatting %s!\n", v->mount_point);
+                ui_print("格式化出错 %s!\n", v->mount_point);
             else
-                ui_print("Done.\n");
+                ui_print("执行完毕.\n");
         }
     }
 
@@ -934,11 +925,11 @@ void show_nandroid_advanced_restore_menu(const char* path)
         return;
     }
 
-    static char* advancedheaders[] = {  "Choose an image to restore",
+    static char* advancedheaders[] = {  "选择一个备份进行还原",
                                 "",
-                                "Choose an image to restore",
-                                "first. The next menu will",
-                                "you more options.",
+                                "首先选择一个备份，然后",
+                                "进入选择需要还原的数据",
+                                "",
                                 "",
                                 NULL
     };
@@ -949,17 +940,17 @@ void show_nandroid_advanced_restore_menu(const char* path)
     if (file == NULL)
         return;
 
-    static char* headers[] = {  "Advanced Restore",
+    static char* headers[] = {  "选择需要还原的数据",
                                 "",
                                 NULL
     };
 
-    static char* list[] = { "Restore boot",
-                            "Restore system",
-                            "Restore data",
-                            "Restore cache",
-                            "Restore sd-ext",
-                            "Restore wimax",
+    static char* list[] = { "还原 boot",
+                            "还原 system",
+                            "还原 data",
+                            "还原 cache",
+                            "还原 sd-ext",
+                            "还原 wimax",
                             NULL
     };
     
@@ -968,33 +959,33 @@ void show_nandroid_advanced_restore_menu(const char* path)
         list[5] = NULL;
     }
 
-    static char* confirm_restore  = "Confirm restore?";
+    static char* confirm_restore  = "确认还原?";
 
     int chosen_item = get_menu_selection(headers, list, 0, 0);
     switch (chosen_item)
     {
         case 0:
-            if (confirm_selection(confirm_restore, "Yes - Restore boot"))
+            if (confirm_selection(confirm_restore, "是的 - 还原 boot"))
                 nandroid_restore(file, 1, 0, 0, 0, 0, 0);
             break;
         case 1:
-            if (confirm_selection(confirm_restore, "Yes - Restore system"))
+            if (confirm_selection(confirm_restore, "是的 - 还原 system"))
                 nandroid_restore(file, 0, 1, 0, 0, 0, 0);
             break;
         case 2:
-            if (confirm_selection(confirm_restore, "Yes - Restore data"))
+            if (confirm_selection(confirm_restore, "是的 - 还原 data"))
                 nandroid_restore(file, 0, 0, 1, 0, 0, 0);
             break;
         case 3:
-            if (confirm_selection(confirm_restore, "Yes - Restore cache"))
+            if (confirm_selection(confirm_restore, "是的 - 还原 cache"))
                 nandroid_restore(file, 0, 0, 0, 1, 0, 0);
             break;
         case 4:
-            if (confirm_selection(confirm_restore, "Yes - Restore sd-ext"))
+            if (confirm_selection(confirm_restore, "是的 - 还原 sd-ext"))
                 nandroid_restore(file, 0, 0, 0, 0, 1, 0);
             break;
         case 5:
-            if (confirm_selection(confirm_restore, "Yes - Restore wimax"))
+            if (confirm_selection(confirm_restore, "是的 - 还原 wimax"))
                 nandroid_restore(file, 0, 0, 0, 0, 0, 1);
             break;
     }
@@ -1036,17 +1027,17 @@ static void choose_backup_format() {
 
 void show_nandroid_menu()
 {
-    static char* headers[] = {  "Backup and Restore",
+    static char* headers[] = {  "备份及还原",
                                 "",
                                 NULL
     };
 
-    char* list[] = { "backup",
-                            "restore",
-                            "delete",
-                            "advanced restore",
-                            "free unused backup data",
-                            "choose backup format",
+    char* list[] = { "备份",
+                            "还原",
+                            "删除",
+                            "高级还原",
+                            "未使用的备份数据",
+                            "选择备份格式",
                             NULL,
                             NULL,
                             NULL,
@@ -1059,17 +1050,17 @@ void show_nandroid_menu()
     char *other_sd = NULL;
     if (volume_for_path("/emmc") != NULL) {
         other_sd = "/emmc";
-        list[6] = "backup to internal sdcard";
-        list[7] = "restore from internal sdcard";
-        list[8] = "advanced restore from internal sdcard";
-        list[9] = "delete from internal sdcard";
+        list[6] = "备份到内置SD卡";
+        list[7] = "从内置SD卡还原";
+        list[8] = "从内置SD卡进行高级还原";
+        list[9] = "删除内置SD卡备份文件";
     }
     else if (volume_for_path("/external_sd") != NULL) {
         other_sd = "/external_sd";
-        list[6] = "backup to external sdcard";
-        list[7] = "restore from external sdcard";
-        list[8] = "advanced restore from external sdcard";
-        list[9] = "delete from external sdcard";
+        list[6] = "备份到外置SD卡";
+        list[7] = "从外置SD卡还原";
+        list[8] = "从外置SD卡进行高级还原";
+        list[9] = "删除外置SD卡备份文件";
     }
 #ifdef RECOVERY_EXTEND_NANDROID_MENU
     extend_nandroid_menu(list, 10, sizeof(list) / sizeof(char*));
@@ -1175,12 +1166,12 @@ void wipe_battery_stats()
     ensure_path_mounted("/data");
     remove("/data/system/batterystats.bin");
     ensure_path_unmounted("/data");
-    ui_print("Battery Stats wiped.\n");
+    ui_print("电池状态已清空.\n");
 }
 
 static void partition_sdcard(const char* volume) {
     if (!can_partition(volume)) {
-        ui_print("Can't partition device: %s\n", volume);
+        ui_print("不能分区: %s\n", volume);
         return;
     }
 
@@ -1218,7 +1209,7 @@ static void partition_sdcard(const char* volume) {
     char cmd[PATH_MAX];
     setenv("SDPATH", sddevice, 1);
     sprintf(cmd, "sdparted -es %s -ss %s -efs ext3 -s", ext_sizes[ext_size], swap_sizes[swap_size]);
-    ui_print("Partitioning SD Card... please wait...\n");
+    ui_print("SD卡分区中... 请等待...\n");
     if (0 == __system(cmd))
         ui_print("Done!\n");
     else
@@ -1249,21 +1240,21 @@ int can_partition(const char* volume) {
 
 void show_advanced_menu()
 {
-    static char* headers[] = {  "Advanced Menu",
+    static char* headers[] = {  "高级功能及测试菜单",
                                 "",
                                 NULL
     };
 
-    static char* list[] = { "reboot recovery",
-                            "wipe dalvik cache",
-                            "wipe battery stats",
-                            "report error",
-                            "key test",
-                            "show log",
-                            "fix permissions",
-                            "partition sdcard",
-                            "partition external sdcard",
-                            "partition internal sdcard",
+    static char* list[] = { "重启到Recovery模式",
+                            "清空Dalvik Cache",
+                            "清空电池信息",
+                            "错误报告",
+                            "按键测试",
+                            "错误报告",
+                            "权限修复",
+                            "SD卡分区",
+                            "外置SD卡分区",
+                            "内置SD卡分区",
                             NULL
     };
 
@@ -1292,16 +1283,16 @@ void show_advanced_menu()
                     break;
                 ensure_path_mounted("/sd-ext");
                 ensure_path_mounted("/cache");
-                if (confirm_selection( "Confirm wipe?", "Yes - Wipe Dalvik Cache")) {
+                if (confirm_selection( "确定 清空?", "是的 - 清空Dalvik Cache")) {
                     __system("rm -r /data/dalvik-cache");
                     __system("rm -r /cache/dalvik-cache");
                     __system("rm -r /sd-ext/dalvik-cache");
-                    ui_print("Dalvik Cache wiped.\n");
+                    ui_print("Dalvik Cache已清空.\n");
                 }
                 ensure_path_unmounted("/data");
                 break;
             case 2:
-                if (confirm_selection( "Confirm wipe?", "Yes - Wipe Battery Stats"))
+                if (confirm_selection( "确定 清空?", "是的 - 清空电池状态"))
                     wipe_battery_stats();
                 break;
             case 3:
@@ -1309,15 +1300,15 @@ void show_advanced_menu()
                 break;
             case 4:
             {
-                ui_print("Outputting key codes.\n");
-                ui_print("Go back to end debugging.\n");
+                ui_print("按键值显示.\n");
+                ui_print("返回结束调试.\n");
                 int key;
                 int action;
                 do
                 {
                     key = ui_wait_key();
                     action = device_handle_key(key, 1);
-                    ui_print("Key: %d\n", key);
+                    ui_print("按键: %d\n", key);
                 }
                 while (action != GO_BACK);
                 break;
@@ -1328,7 +1319,7 @@ void show_advanced_menu()
             case 6:
                 ensure_path_mounted("/system");
                 ensure_path_mounted("/data");
-                ui_print("Fixing permissions...\n");
+                ui_print("恢复权限中...\n");
                 __system("fix_permissions");
                 ui_print("Done!\n");
                 break;
@@ -1402,7 +1393,7 @@ int bml_check_volume(const char *path) {
         return 0;
     }
     
-    ui_print("%s may be rfs. Checking...\n", path);
+    ui_print("%s 可能是rfs. 检查中...\n", path);
     char tmp[PATH_MAX];
     sprintf(tmp, "mount -t rfs %s %s", vol->device, path);
     int ret = __system(tmp);
@@ -1423,7 +1414,7 @@ void process_volumes() {
     if (device_flash_type() != BML)
         return;
 
-    ui_print("Checking for ext4 partitions...\n");
+    ui_print("检查ext4分区...\n");
     int ret = 0;
     ret = bml_check_volume("/system");
     ret |= bml_check_volume("/data");
