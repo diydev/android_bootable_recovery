@@ -632,7 +632,7 @@ update_directory(const char* path, const char* unmount_when_done) {
             strlcat(new_path, "/", PATH_MAX);
             strlcat(new_path, item, PATH_MAX);
 
-            ui_print("\n-- Install %s ...\n", path);
+            ui_print("\n-- 安装 %s ...\n", path);
             set_sdcard_update_bootloader_message();
             char* copy = copy_sideloaded_package(new_path);
             if (unmount_when_done != NULL) {
@@ -672,12 +672,12 @@ wipe_data(int confirm) {
             title_headers = prepend_title((const char**)headers);
         }
 
-        char* items[] = { " 是的 - 清空所有数据",   // [1]
-                          " 取消 - 返回",
+        char* items[] = { " 取消 - 返回",   // [0]
+                          " 是的 - 清空所有数据", //[1]
                           NULL };
 
         int chosen_item = get_menu_selection(title_headers, items, 1, 0);
-        if (chosen_item != 0) {
+        if (chosen_item != 1) {
             return;
         }
     }

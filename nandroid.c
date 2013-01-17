@@ -221,12 +221,12 @@ static void refresh_default_backup_handler() {
 static nandroid_backup_handler get_backup_handler(const char *backup_path) {
     Volume *v = volume_for_path(backup_path);
     if (v == NULL) {
-        ui_print("Unable to find volume.\n");
+        ui_print("无法找到卷.\n");
         return NULL;
     }
     MountedVolume *mv = find_mounted_volume_by_mount_point(v->mount_point);
     if (mv == NULL) {
-        ui_print("Unable to find mounted volume: %s\n", v->mount_point);
+        ui_print("无法挂载卷: %s\n", v->mount_point);
         return NULL;
     }
 
@@ -397,10 +397,10 @@ int nandroid_backup(const char* backup_path)
             return ret;
     }
 
-    ui_print("Generating md5 sum...\n");
+    ui_print("生成MD5校验值...\n");
     sprintf(tmp, "nandroid-md5.sh %s", backup_path);
     if (0 != (ret = __system(tmp))) {
-        ui_print("Error while generating md5 sum!\n");
+        ui_print("生成MD5校验值错误!\n");
         return ret;
     }
     
@@ -420,7 +420,7 @@ static int unyaffs_wrapper(const char* backup_file_image, const char* backup_pat
     sprintf(tmp, "cd %s ; unyaffs %s ; exit $?", backup_path, backup_file_image);
     FILE *fp = __popen(tmp, "r");
     if (fp == NULL) {
-        ui_print("Unable to execute unyaffs.\n");
+        ui_print("无法解压unyaffs.\n");
         return -1;
     }
 
@@ -438,7 +438,7 @@ static int tar_extract_wrapper(const char* backup_file_image, const char* backup
     sprintf(tmp, "cd $(dirname %s) ; cat %s* | tar xv ; exit $?", backup_path, backup_file_image);
     FILE *fp = __popen(tmp, "r");
     if (fp == NULL) {
-        ui_print("Unable to execute tar.\n");
+        ui_print("无法解压tar.\n");
         return -1;
     }
 
@@ -553,7 +553,7 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
         }
 
         if (backup_filesystem == NULL || restore_handler == NULL) {
-            ui_print("%s.img not found. Skipping restore of %s.\n", name, mount_point);
+            ui_print("%s.img 没有发现. 跳过还原 %s.\n", name, mount_point);
             return 0;
         }
         else {
@@ -600,7 +600,7 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* mou
     if (restore_handler == NULL)
         restore_handler = get_restore_handler(mount_point);
     if (restore_handler == NULL) {
-        ui_print("Error finding an appropriate restore handler.\n");
+        ui_print("查找错误.\n");
         return -2;
     }
     if (0 != (ret = restore_handler(tmp, mount_point, callback))) {
