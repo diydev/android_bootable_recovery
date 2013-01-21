@@ -30,6 +30,7 @@ char* MENU_ITEMS[] = { "立即重启系统",
                        "备份还原",
                        "U盘/格式化",
                        "高级功能",
+                       "关机",
                        NULL };
 
 void device_ui_init(UIParameters* ui_parameters) {
