@@ -67,7 +67,9 @@ static const char *CACHE_ROOT = "/cache";
 static const char *SDCARD_ROOT = "/sdcard";
 static int allow_display_toggle = 0;
 static int poweroff = 0;
+#ifdef BOARD_HAS_DUAL_SYSTEM
 static int multiboot = 1;
+#endif
 static const char *SDCARD_PACKAGE_FILE = "/sdcard/update.zip";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
@@ -722,11 +724,13 @@ prompt_and_wait() {
         int status;
         switch (chosen_item) {
             case ITEM_REBOOT:
+#ifdef BOARD_HAS_DUAL_SYSTEM
                 reboot_multi_system();
                 break;
-              //  poweroff=0;
-              //  return;
-
+#else
+                poweroff=0;
+                return;
+#endif
             case ITEM_WIPE_DATA:
                 wipe_data(ui_text_visible());
                 if (!ui_text_visible()) return;
@@ -966,13 +970,17 @@ main(int argc, char **argv) {
     sync();
     if(!poweroff) {
         ui_print("重启手机...\n");
+	#ifdef BOARD_HAS_DUAL_SYSTEM
         if(multiboot==1){
+	#endif
 			android_reboot(ANDROID_RB_RESTART, 0, 0);
+	#ifdef BOARD_HAS_DUAL_SYSTEM
 		}else{
 			set_reboot_message(multiboot==2);
 			sync();
 			android_reboot(ANDROID_RB_RESTART, 0, 0);
 		}
+	#endif
     }
     else {
         ui_print("关闭手机...\n");
@@ -988,7 +996,7 @@ int get_allow_toggle_display() {
     return allow_display_toggle;
 }
 
-
+#ifdef BOARD_HAS_DUAL_SYSTEM
 void
 reboot_multi_system() {
         static char** title_headers = NULL;
@@ -1026,3 +1034,4 @@ reboot_multi_system() {
 		}
 	}
 }
+#endif

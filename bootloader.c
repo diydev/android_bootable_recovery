@@ -29,9 +29,10 @@ static int get_bootloader_message_mtd(struct bootloader_message *out, const Volu
 static int set_bootloader_message_mtd(const struct bootloader_message *in, const Volume* v);
 static int get_bootloader_message_block(struct bootloader_message *out, const Volume* v);
 static int set_bootloader_message_block(const struct bootloader_message *in, const Volume* v);
+#ifdef BOARD_HAS_DUAL_SYSTEM
 static int set_reboot_message_mtd(int system_id, const Volume *v);
 static int set_reboot_message_block(int system_id, const Volume *v);
-
+#endif
 int get_bootloader_message(struct bootloader_message *out) {
     Volume* v = volume_for_path("/misc");
     if(v)
@@ -61,7 +62,7 @@ int set_bootloader_message(const struct bootloader_message *in) {
     }
     return -1;
 }
-
+#ifdef BOARD_HAS_DUAL_SYSTEM
 int set_reboot_message(int system_id) {
     Volume* v = volume_for_path("/misc");
     if (strcmp(v->fs_type, "mtd") == 0) {
@@ -107,15 +108,16 @@ int get_current_system_id(void) {
 out:
     return system_id;
 }
-
+#endif
 // ------------------------------
 // for misc partitions on MTD
 // ------------------------------
 
 static const int MISC_PAGES = 3;         // number of pages to save
 static const int MISC_COMMAND_PAGE = 1;  // bootloader command is this page
+#ifdef BOARD_HAS_DUAL_SYSTEM
 static const int MISC_REBOOT_PAGE = 0; // which system to reboot is this page
-
+#endif
 static int get_bootloader_message_mtd(struct bootloader_message *out,
                                       const Volume* v) {
     size_t write_size;
@@ -186,7 +188,7 @@ static int set_bootloader_message_mtd(const struct bootloader_message *in,
     return 0;
 }
 
-
+#ifdef BOARD_HAS_DUAL_SYSTEM
 static int set_reboot_message_mtd(int system_id, const Volume* v) {
     size_t write_size;
     mtd_scan_partitions();
@@ -229,7 +231,7 @@ static int set_reboot_message_mtd(int system_id, const Volume* v) {
     LOGI("Reboot to system \"%s\"\n", system_id != 0 ? "system1" : "system2");
     return 0;
 }
-
+#endif
 // ------------------------------------
 // for misc partitions on block devices
 // ------------------------------------
@@ -292,7 +294,7 @@ static int set_bootloader_message_block(const struct bootloader_message *in,
     }
     return 0;
 }
-
+#ifdef BOARD_HAS_DUAL_SYSTEM
 static int set_reboot_message_block(int system_id, const Volume* v) {
     char buf[32];
     FILE* f = fopen(v->device, "wb");
@@ -318,7 +320,7 @@ static int set_reboot_message_block(int system_id, const Volume* v) {
     }
     return 0;
 }
-
+#endif
 /* Update Image
  *
  * - will be stored in the "cache" partition
