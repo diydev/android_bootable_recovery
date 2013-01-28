@@ -41,6 +41,23 @@ struct bootloader_message {
     char recovery[1024];
 };
 
+#define MMC_SECTOR_SIZE 512
+#define DUALBOOT_OFFSET_SECTORS 8
+/* Dualboot message
+ * The new misc partition map is below
+ * |--------------------|
+ * | bootloader_message	| 8 sectors, 4KB
+ * |--------------------|
+ * | dual_boot_message	|
+ * |--------------------|
+ * The command field should be boot-system1, when we want to
+ * boot the second system. On any other value, LK will boot
+ * into the first system.
+ */
+struct dual_boot_message {
+	char command[32];
+};
+
 /* Read and write the bootloader command from the "misc" partition.
  * These return zero on success.
  */

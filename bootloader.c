@@ -29,6 +29,8 @@ static int get_bootloader_message_mtd(struct bootloader_message *out, const Volu
 static int set_bootloader_message_mtd(const struct bootloader_message *in, const Volume* v);
 static int get_bootloader_message_block(struct bootloader_message *out, const Volume* v);
 static int set_bootloader_message_block(const struct bootloader_message *in, const Volume* v);
+static int set_reboot_message_mtd(int system_id, const Volume *v);
+static int set_reboot_message_block(int system_id, const Volume *v);
 
 int get_bootloader_message(struct bootloader_message *out) {
     Volume* v = volume_for_path("/misc");
@@ -60,12 +62,59 @@ int set_bootloader_message(const struct bootloader_message *in) {
     return -1;
 }
 
+int set_reboot_message(int system_id) {
+    Volume* v = volume_for_path("/misc");
+    if (strcmp(v->fs_type, "mtd") == 0) {
+        return set_reboot_message_mtd(system_id, v);
+    } else if (strcmp(v->fs_type, "emmc") == 0) {
+        return set_reboot_message_block(system_id, v);
+    }
+    LOGE("unknown misc partition fs_type \"%s\"\n", v->fs_type);
+    return -1;
+}
+
+int get_current_system_id(void) {
+    Volume* v = volume_for_path("/misc");
+    char buf[32];
+    int system_id = 0;
+
+    FILE* f = fopen(v->device, "rb");
+    if (f == NULL) {
+        LOGE("Can't open %s\n(%s)\n", v->device, strerror(errno));
+        goto out;
+    }
+
+    int rc = fseek(f, MMC_SECTOR_SIZE * DUALBOOT_OFFSET_SECTORS, SEEK_SET);
+    if (rc) {
+        LOGE("Failed seeking %s\n(%s)\n", v->device, strerror(errno));
+        goto out;
+    }
+    memset(buf, 0, sizeof(buf));
+    int count = fread(buf, sizeof(buf), 1, f);
+    if (count != 1) {
+        LOGE("Failed read %s\n(%s)\n", v->device, strerror(errno));
+        goto out;
+    }
+
+    if (strcmp(buf, "boot-system1") == 0) {
+        system_id = 1;
+    }
+
+    if (fclose(f) != 0) {
+        LOGE("Failed closing %s\n(%s)\n", v->device, strerror(errno));
+    }
+
+out:
+    return system_id;
+}
+
 // ------------------------------
 // for misc partitions on MTD
 // ------------------------------
 
 static const int MISC_PAGES = 3;         // number of pages to save
 static const int MISC_COMMAND_PAGE = 1;  // bootloader command is this page
+static const int MISC_REBOOT_PAGE = 0; // which system to reboot is this page
 
 static int get_bootloader_message_mtd(struct bootloader_message *out,
                                       const Volume* v) {
@@ -138,6 +187,49 @@ static int set_bootloader_message_mtd(const struct bootloader_message *in,
 }
 
 
+static int set_reboot_message_mtd(int system_id, const Volume* v) {
+    size_t write_size;
+    mtd_scan_partitions();
+    const MtdPartition *part = mtd_find_partition_by_name(v->device);
+    if (part == NULL || mtd_partition_info(part, NULL, NULL, &write_size)) {
+        LOGE("Can't find %s\n", v->device);
+        return -1;
+    }
+
+    MtdReadContext *read = mtd_read_partition(part);
+    if (read == NULL) {
+        LOGE("Can't open %s\n(%s)\n", v->device, strerror(errno));
+        return -1;
+    }
+
+    ssize_t size = write_size * MISC_PAGES;
+    char data[size];
+    ssize_t r = mtd_read_data(read, data, size);
+    if (r != size) LOGE("Can't read %s\n(%s)\n", v->device, strerror(errno));
+    mtd_read_close(read);
+    if (r != size) return -1;
+
+    memcpy(&data[write_size * MISC_REBOOT_PAGE], &system_id, sizeof(system_id));
+
+    MtdWriteContext *write = mtd_write_partition(part);
+    if (write == NULL) {
+        LOGE("Can't open %s\n(%s)\n", v->device, strerror(errno));
+        return -1;
+    }
+    if (mtd_write_data(write, data, size) != size) {
+        LOGE("Can't write %s\n(%s)\n", v->device, strerror(errno));
+        mtd_write_close(write);
+        return -1;
+    }
+    if (mtd_write_close(write)) {
+        LOGE("Can't finish %s\n(%s)\n", v->device, strerror(errno));
+        return -1;
+    }
+
+    LOGI("Reboot to system \"%s\"\n", system_id != 0 ? "system1" : "system2");
+    return 0;
+}
+
 // ------------------------------------
 // for misc partitions on block devices
 // ------------------------------------
@@ -190,6 +282,32 @@ static int set_bootloader_message_block(const struct bootloader_message *in,
         return -1;
     }
     int count = fwrite(in, sizeof(*in), 1, f);
+    if (count != 1) {
+        LOGE("Failed writing %s\n(%s)\n", v->device, strerror(errno));
+        return -1;
+    }
+    if (fclose(f) != 0) {
+        LOGE("Failed closing %s\n(%s)\n", v->device, strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+static int set_reboot_message_block(int system_id, const Volume* v) {
+    char buf[32];
+    FILE* f = fopen(v->device, "wb");
+    if (f == NULL) {
+        LOGE("Can't open %s\n(%s)\n", v->device, strerror(errno));
+        return -1;
+    }
+    int rc = fseek(f, MMC_SECTOR_SIZE * DUALBOOT_OFFSET_SECTORS, SEEK_SET);
+    if (rc) {
+        LOGE("Failed seeking %s\n(%s)\n", v->device, strerror(errno));
+        return -1;
+    }
+    memset(buf, 0, sizeof(buf));
+    snprintf(buf, sizeof(buf), "boot-system%d", system_id ? 1 : 0);
+    int count = fwrite(buf, sizeof(buf), 1, f);
     if (count != 1) {
         LOGE("Failed writing %s\n(%s)\n", v->device, strerror(errno));
         return -1;

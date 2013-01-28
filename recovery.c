@@ -67,6 +67,7 @@ static const char *CACHE_ROOT = "/cache";
 static const char *SDCARD_ROOT = "/sdcard";
 static int allow_display_toggle = 0;
 static int poweroff = 0;
+static int multiboot = 1;
 static const char *SDCARD_PACKAGE_FILE = "/sdcard/update.zip";
 static const char *TEMPORARY_LOG_FILE = "/tmp/recovery.log";
 static const char *SIDELOAD_TEMP_DIR = "/tmp/sideload";
@@ -721,8 +722,10 @@ prompt_and_wait() {
         int status;
         switch (chosen_item) {
             case ITEM_REBOOT:
-                poweroff=0;
-                return;
+                reboot_multi_system();
+                break;
+              //  poweroff=0;
+              //  return;
 
             case ITEM_WIPE_DATA:
                 wipe_data(ui_text_visible());
@@ -963,7 +966,13 @@ main(int argc, char **argv) {
     sync();
     if(!poweroff) {
         ui_print("重启手机...\n");
-        android_reboot(ANDROID_RB_RESTART, 0, 0);
+        if(multiboot==1){
+			android_reboot(ANDROID_RB_RESTART, 0, 0);
+		}else{
+			set_reboot_message(multiboot==2);
+			sync();
+			android_reboot(ANDROID_RB_RESTART, 0, 0);
+		}
     }
     else {
         ui_print("关闭手机...\n");
@@ -977,4 +986,43 @@ main(int argc, char **argv) {
 #endif
 int get_allow_toggle_display() {
     return allow_display_toggle;
+}
+
+
+void
+reboot_multi_system() {
+        static char** title_headers = NULL;
+
+        if (title_headers == NULL) {
+            char* headers[] = { "选择你要进入的系统",
+                                "",
+                                NULL };
+            title_headers = prepend_title((const char**)headers);
+        }
+       
+        char* items[] = { "系统[1]",
+                          "系统[2]",
+                          NULL };
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(title_headers, items, 0, 0);
+        
+        switch (chosen_item) {
+			case 0:
+			    poweroff=0;
+			    multiboot=1;
+			    set_reboot_message(0);
+			    android_reboot(ANDROID_RB_RESTART, 0, 0);
+			  //  return;
+			case 1:
+			    poweroff=0;
+			    multiboot=2;
+			    set_reboot_message(1);
+			    sync();
+			    android_reboot(ANDROID_RB_RESTART, 0, 0);
+			   // return;
+			default :
+			    return;
+		}
+	}
 }
