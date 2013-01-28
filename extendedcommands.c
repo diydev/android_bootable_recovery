@@ -1500,7 +1500,7 @@ int verify_root_and_recovery() {
 
     int ret = 0;
     struct stat st;
-/*    if (0 == lstat("/system/etc/install-recovery.sh", &st)) {
+    if (0 == lstat("/system/etc/install-recovery.sh", &st)) {
         if (st.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) {
             ui_show_text(1);
             ret = 1;
@@ -1509,7 +1509,7 @@ int verify_root_and_recovery() {
             }
         }
     }
-*/
+
     if (0 == lstat("/system/bin/su", &st)) {
         if (S_ISREG(st.st_mode)) {
             if ((st.st_mode & (S_ISUID | S_ISGID)) != (S_ISUID | S_ISGID)) {
