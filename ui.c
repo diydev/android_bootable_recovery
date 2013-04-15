@@ -53,7 +53,7 @@ static int gShowBackButton = 0;
 
 #define CHAR_WIDTH BOARD_RECOVERY_CHAR_WIDTH
 #define CHAR_HEIGHT BOARD_RECOVERY_CHAR_HEIGHT
-#define EXT_HEIGHT CHAR_HEIGHT*2
+#define EXT_HEIGHT CHAR_HEIGHT
 
 #define UI_WAIT_KEY_TIMEOUT_SEC    3600
 #define UI_KEY_REPEAT_INTERVAL 80
@@ -304,8 +304,8 @@ static void draw_screen_locked(void)
 
             gr_color(MENU_TEXT_COLOR);
 			draw_text_line(1, batt_text, LEFT_ALIGN);
-            gr_fill(0, (menu_top + menu_sel - menu_show_start) * EXT_HEIGHT+EXT_HEIGHT/4,
-                    gr_fb_width(), (menu_top + menu_sel - menu_show_start + 1)*EXT_HEIGHT+EXT_HEIGHT/4+1);
+            gr_fill(0, (menu_top + menu_sel - menu_show_start) * EXT_HEIGHT/*+EXT_HEIGHT/4*/,
+                    gr_fb_width(), (menu_top + menu_sel - menu_show_start + 1)*EXT_HEIGHT/*+EXT_HEIGHT/4*/+1);
 
             gr_color(HEADER_TEXT_COLOR);
             for (i = 0; i < menu_top; ++i) {

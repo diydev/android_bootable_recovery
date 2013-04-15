@@ -36,7 +36,7 @@ static void
 set_usb_driver(int enabled) {
     int fd = open("/sys/class/android_usb/android0/enable", O_WRONLY);
     if (fd < 0) {
-        ui_print("failed to open driver control: %s\n", strerror(errno));
+        ui_print("打开USB驱动失败: %s\n", strerror(errno));
         return;
     }
 
@@ -48,11 +48,11 @@ set_usb_driver(int enabled) {
     }
 
     if (status < 0) {
-        ui_print("failed to set driver control: %s\n", strerror(errno));
+        ui_print("设置USB驱动失败: %s\n", strerror(errno));
     }
 
     if (close(fd) < 0) {
-        ui_print("failed to close driver control: %s\n", strerror(errno));
+        ui_print("关闭USB驱动失败: %s\n", strerror(errno));
     }
 }
 
@@ -68,7 +68,7 @@ maybe_restart_adbd() {
     char value[PROPERTY_VALUE_MAX+1];
     int len = property_get("ro.debuggable", value, NULL);
     if (len == 1 && value[0] == '1') {
-        ui_print("Restarting adbd...\n");
+        ui_print("重启ADB服务...\n");
         set_usb_driver(1);
         property_set("ctl.start", "adbd");
     }
@@ -80,8 +80,8 @@ apply_from_adb() {
     stop_adbd();
     set_usb_driver(1);
 
-    ui_print("\n\nSideload started ...\nNow send the package you want to apply\n"
-              "to the device with \"adb sideload <filename>\"...\n\n");
+    ui_print("\n\nSideload模式开始...\n请从电脑端输入命令开始刷机\n"
+              "命令格式:\"adb sideload <刷机包路径>\"...\n\n");
 
     pid_t child;
     if ((child = fork()) == 0) {
@@ -105,10 +105,10 @@ apply_from_adb() {
     struct stat st;
     if (stat(ADB_SIDELOAD_FILENAME, &st) != 0) {
         if (errno == ENOENT) {
-            ui_print("No package received.\n");
+            ui_print("没有收到任何刷机包.\n");
             ui_set_background(BACKGROUND_ICON_ERROR);
         } else {
-            ui_print("Error reading package:\n  %s\n", strerror(errno));
+            ui_print("读取刷机包时出现错误:\n  %s\n", strerror(errno));
             ui_set_background(BACKGROUND_ICON_ERROR);
         }
         return INSTALL_ERROR;
@@ -119,7 +119,7 @@ apply_from_adb() {
 
     if (install_status != INSTALL_SUCCESS) {
         ui_set_background(BACKGROUND_ICON_ERROR);
-        ui_print("Installation aborted.\n");
+        ui_print("安装异常.\n");
     }
 
     return install_status;
