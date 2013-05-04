@@ -32,7 +32,7 @@ ifdef I_AM_KOUSH
 RECOVERY_NAME := ClockworkMod Recovery
 LOCAL_CFLAGS += -DI_AM_KOUSH
 else
-RECOVERY_NAME := ShenduOS中文恢复系统
+RECOVERY_NAME := ShenduOS中文恢复系统 v1.2
 endif
 
 RECOVERY_VERSION := $(RECOVERY_NAME)
