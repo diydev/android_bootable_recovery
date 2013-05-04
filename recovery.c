@@ -852,7 +852,7 @@ main(int argc, char **argv) {
 #endif
     device_ui_init(&ui_parameters);
     ui_init();
-    ui_print("深度OS，做懂你的系统！\nwww.shenduos.com\n");
+    ui_print("深度OS\nwww.shenduos.com\n");
     load_volume_table();
     process_volumes();
     LOGI("Processing arguments.\n");
